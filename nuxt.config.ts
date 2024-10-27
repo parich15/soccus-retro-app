@@ -10,4 +10,17 @@ export default defineNuxtConfig({
     '@pinia/nuxt'
   ],
 
+  // PINIA CONFIG
+  pinia: {
+    storesDirs: ['./stores/**'],
+  },
+
+  // RUNTIME CONFIG
+  runtimeConfig: {
+    // ...PUBLIC KEYS
+    public: {
+      directus: process.env.DIRECTUS_URL || 'http://localhost:8055',
+    },
+  },
+
 })
