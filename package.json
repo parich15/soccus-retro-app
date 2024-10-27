@@ -16,5 +16,8 @@
     "pinia": "^2.2.4",
     "vue": "latest",
     "vue-router": "latest"
+  },
+  "overrides": {
+    "vue": "latest"
   }
 }
