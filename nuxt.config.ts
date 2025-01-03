@@ -1,18 +1,37 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 
-  // DEV CONFIG
-  compatibilityDate: '2024-04-03',
-  devtools: { enabled: true },
+  // APP CONFIG
+  app: {
+    
+    // APP METADATA
+    head: {
+      htmlAttrs: {"data-theme": "soccus"},
+    } 
+
+  },
+
+  css: [
+    '~/assets/css/main.css',
+    '~/assets/css/fonts.css',
+  ],
 
   // MODULES
   modules: [
-    '@pinia/nuxt'
+    '@pinia/nuxt', 
+    '@nuxtjs/tailwindcss'
   ],
 
   // PINIA CONFIG
   pinia: {
     storesDirs: ['./stores/**'],
+  },
+
+  // TAILWIND CONFIG
+  tailwindcss: {
+    cssPath:    ['~/assets/css/main.css', {injectPosition: 'first'}],
+    configPath: 'tailwind.config',
+    viewer:     true,
   },
 
   // RUNTIME CONFIG
@@ -23,4 +42,7 @@ export default defineNuxtConfig({
     },
   },
 
+  // DEV CONFIG
+  compatibilityDate: '2024-04-03',
+  devtools: { enabled: true },
 })

@@ -3,7 +3,6 @@ import { createDirectus, authentication, rest } from "@directus/sdk";
 import { useAuth } from "~/stores/auth";
 import { CookieStorage } from "~/utils/CookieStorage";
 
-
 export default defineNuxtPlugin(async (nuxtApp) => {
 
     // BASE CONFIG
@@ -13,6 +12,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
           
     // DIRECTUS INSTANCE
     const directus = createDirectus(directusUrl).with(rest()).with(authentication('json', {storage}));
+
+    // REGISTER DIRECTUS INSTANCE
+    nuxtApp.provide('directus', directus);
 
     // DIRECTUS AUTHENTICATION
     const auth  = useAuth(),
@@ -43,6 +45,4 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
     console.log('Directus instance created in ' + side);
     
-    // REGISTER DIRECTUS INSTANCE
-    nuxtApp.provide('directus', directus);
 })

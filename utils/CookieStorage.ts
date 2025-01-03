@@ -1,4 +1,4 @@
-import type { CookieRef, NuxtApp  } from "#app";
+import type { CookieRef } from "#app";
 import type { AuthenticationData, AuthenticationStorage } from "@directus/sdk";
 
 // AUTHENTICATION STORAGE
@@ -11,7 +11,7 @@ export class CookieStorage implements AuthenticationStorage {
     get(): AuthenticationData | null {
         const cookie = this.nuxtApp.runWithContext(() => useCookie(this.cookieKey)) as CookieRef<string | null>;
         if(!cookie.value) return null;
-        return JSON.parse(useCookie(this.cookieKey).value!) as AuthenticationData;
+        return JSON.parse(JSON.stringify(cookie.value)) as AuthenticationData;
     }
 
     set(data: AuthenticationData | null): void {

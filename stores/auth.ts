@@ -1,9 +1,10 @@
+import { readMe } from "@directus/sdk";
 import { defineStore } from "pinia";
 import type { Auth } from "~/models/auth/Auth.model";
 import type { User } from "~/models/auth/User";
 
 export const useAuth = defineStore("auth", {
-    
+
     // STATE
     state: (): Auth => ({
         user:     null,
@@ -12,11 +13,11 @@ export const useAuth = defineStore("auth", {
 
     // GETTERS
     getters: {
-        userData(): Auth["user"] {
+        userData(): Auth["user"] | null {
             return this.user;
         },
-        isLogged(): Auth["logged"] {
-            return this.isLogged;
+        isLogged(): boolean {
+            return this.logged;
         },
     },
 
@@ -27,24 +28,21 @@ export const useAuth = defineStore("auth", {
         async login(email: string, password: string, redirect?: string): Promise<void> {
 
             // Comprobamos si ya estamos logueados
-            if(this.logged && this.user) {
-                throw new Error("Ya estás logueado");
+            if(this.isLogged && this.user) {
+                console.warn("Ya estás logueado");
+                return;
             }
 
-            // Importamos las funciones necesarias
-            const router = useRouter();
-            const { $directus } = useNuxtApp() as any;
+            // Servicios
+            const router = useRouter(),
+                  directus = useNuxtApp().$directus;
 
             // Probamos a loguearnos
             try {
-                
-                // Probamos a loguearnos
-                const login = await $directus.auth.login({
-                    email,
-                    password,
-                })
 
-                // Si el login es correcto, obtenemos los datos del usuario
+                // Probamos a loguearnos
+                await directus.login(email, password);
+                
                 await this.getUserData();
 
                 // Si tenemos una redirección, llamamos a la función de redirección
@@ -52,10 +50,9 @@ export const useAuth = defineStore("auth", {
                     router.push(redirect);
                 }
 
-
             } catch (error) {
                 console.error(error);
-                throw new Error("Error al iniciar sesión");
+                alert("Error al iniciar sesión");
             }
 
 
@@ -66,32 +63,33 @@ export const useAuth = defineStore("auth", {
 
             // Validaciones
             if(!this.logged) {
-                throw new Error("No estás logueado");
+                console.warn("No estás logueado");
             }
 
-            // Importamos las funciones necesarias
-            const router = useRouter();
-            const { $directus } = useNuxtApp() as any;
+             // Servicios
+            const router   = useRouter(),
+                  directus = useNuxtApp().$directus,
+                  cookie   = useCookie('auth');
+
 
             // Probamos a cerrar sesión
             try {
-                
-                // Cerramos sesión
-                const logout = await $directus.auth.logout();
 
-                // Borramos cookie residual
-                const authExpiration = useCookie('auth_expires_at');
-                authExpiration.value = null;
+                // Cerramos sesión
+                await directus.logout()
 
                 // Actualizamos las propiedades de State
-                this.reset();
+                await this.reset();
+
+                // Borramos la cookie
+                cookie.value = null;
 
                 // Redirigimos al inicio
-                router.push('/');
+                router.push('/');                
 
             } catch (error) {
                 console.error(error);
-                throw new Error("Error al cerrar sesión");
+                alert("Error al cerrar sesión");
             }
 
         },
@@ -104,23 +102,23 @@ export const useAuth = defineStore("auth", {
 
         // GET CURRENT USER
         async getUserData(): Promise<void> {
-            
-            // Importamos las funciones necesarias
-            const { $directus } = useNuxtApp() as any;
-            
+
+             // Servicios
+             const directus = useNuxtApp().$directus;
+
+
             // Probamos a obtener los datos del usuario
-            try {
+            try { 
                 
                 // Obtenemos los datos del usuario
-                const user: User = await $directus.users.me.read({
-                    fields: ['*'],
+                await directus.request<User>(readMe()).then((response:User)=> {
+                    this.user = response;
+                    this.logged = true;
                 });
                 
-                // Si la petición es correcta, actualizamos los datos del usuario
-                this.user   = user;
-                this.logged = true;
-
+            
             } catch (error) {
+                this.reset();
                 console.error(error);
                 throw new Error("Error al obtener los datos del usuario");
             }
